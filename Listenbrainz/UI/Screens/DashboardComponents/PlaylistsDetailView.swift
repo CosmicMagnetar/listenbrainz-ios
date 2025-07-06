@@ -12,70 +12,70 @@ struct PlaylistDetailsView: View {
     @EnvironmentObject var viewModel: DashboardViewModel
     var playlistId: String
     var playlistName: String
-    @State private var isLoading = false
+    @State private var uiState: UiState<PlaylistDetails> = .loading
     @State private var selectedTrack: PlaylistTrack?
     @State private var showPinTrackView = false
     @State private var showWriteReview = false
     @State private var showingRecommendToUsersPersonallyView = false
     @Environment(\.colorScheme) var colorScheme
+    //@Environment(\.dismiss) var dismiss
 
     @AppStorage(Strings.AppStorageKeys.userToken) private var userToken: String = ""
     @AppStorage(Strings.AppStorageKeys.userName) private var userName: String = ""
 
     var body: some View {
         ZStack {
-            colorScheme == .dark ? Color.backgroundColor : Color.white
-
-                if isLoading {
-                    ProgressView("Loading playlist details...")
-                        .padding()
-                } else {
-                    if let details = viewModel.playlistDetails {
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 16) {
-                              VStack(alignment:.leading,spacing:5){
+            (colorScheme == .dark ? Color.backgroundColor : Color.white).ignoresSafeArea()
+            
+            ScrollView(.vertical) {
+                VStack(spacing: 16) {
+                    switch uiState {
+                    case .loading:
+                        ProgressView("Loading playlist details...")
+                            .padding()
+                    case .failure(let error):
+                        Text("Error loading playlist details :(")
+                            .padding()
+                    case .success(let details) :
+                        VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: 5){
                                 Text(playlistName)
-                                  .font(.largeTitle)
-                                  .padding(.horizontal)
-
-                                Text("Public Playlist by \(viewModel.userName)")
-                                  .font(.title2)
-                                  .fontWeight(.bold)
-                                  .foregroundStyle(Color.lightPink)
-
-                              }
-                              .padding(.top,30)
-
-
-                                ForEach(details.track, id: \.id) { track in
-                                    ListenCardView(
-                                        item: track,
-                                        onPinTrack: { track in
-                                            selectedTrack = track
-                                            showPinTrackView = true
-                                        },
-                                        onRecommendPersonally: { track in
-                                            selectedTrack = track
-                                            showingRecommendToUsersPersonallyView = true
-                                        },
-                                        onWriteReview: { track in
-                                            selectedTrack = track
-                                            showWriteReview = true
-                                        }
-                                    )
-                                    .frame(width:  UIScreen.main.bounds.width * 0.9, alignment: .leading)
-                                }
+                                    .font(.largeTitle)
+                                    
+                                Text(
+                                    "Public Playlist by \(viewModel.userName)"
+                                )
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.lightPink)
                             }
-                            .padding(.top,50)
+                                
+                            ForEach(details.track, id: \.id) { track in
+                                ListenCardView(
+                                    item: track,
+                                    onPinTrack: { track in
+                                        selectedTrack = track
+                                        showPinTrackView = true
+                                    },
+                                    onRecommendPersonally: { track in
+                                        selectedTrack = track
+                                        showingRecommendToUsersPersonallyView = true
+                                    },
+                                    onWriteReview: { track in
+                                        selectedTrack = track
+                                        showWriteReview = true
+                                    }
+                                )
+                                .frame(
+                                    width:  UIScreen.main.bounds.width * 0.9,
+                                    alignment: .leading
+                                )
+                            }
                         }
-                    } else {
-                        Text("No details available for this playlist.")
-                            .foregroundColor(.gray)
-                            .padding(.top)
-                    }
                 }
+            }
         }
-        .edgesIgnoringSafeArea(.all)
+        .ignoresSafeArea(edges: .horizontal)
         .onAppear {
             fetchPlaylistDetails()
         }
@@ -121,10 +121,13 @@ struct PlaylistDetailsView: View {
     }
 
     private func fetchPlaylistDetails() {
-        isLoading = true
-        viewModel.getCreatedForYouPlaylist(playlistId: playlistId)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            isLoading = false
+        Task {
+            await asyncToStream {
+                try await viewModel
+                    .getCreatedForYouPlaylist(playlistId: playlistId)
+            }.collect { uiState in
+                self.uiState = uiState
+            }
         }
     }
 }
