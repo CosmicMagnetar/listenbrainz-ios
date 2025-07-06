@@ -93,4 +93,30 @@ extension View {
                 .stroke(color, lineWidth: width)
         )
     }
+    
+    func backgroundBlur() -> some View {
+        if #available(iOS 26.0, *) {
+            return self.glassEffect(in: .rect(cornerRadius: 16.0))
+        } else {
+            return self.background(.ultraThinMaterial)
+        }
+    }
+    
+    func tabBarMinimize() -> some View {
+        if #available(iOS 26.0, *) {
+            return self.tabBarMinimizeBehavior(.onScrollDown)
+        } else {
+            return self
+        }
+    }
+    
+    func apply<V: View>(@ViewBuilder _ block: (Self) -> V) -> V { block(self) }
+    
+    @ViewBuilder func `if`<Transform: View>(_ condition: Bool, transform: (Self) -> Transform) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
 }

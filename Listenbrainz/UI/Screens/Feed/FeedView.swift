@@ -38,7 +38,7 @@ struct FeedView: View {
                 isSearchActive: $isSearchActive,
                 customText: "Feed"
             )
-            .background(.ultraThinMaterial)
+            .backgroundBlur()
             .zIndex(1)
             .readSize($topBarSize)
             
@@ -141,7 +141,7 @@ struct FeedView: View {
                     .sheet(isPresented: $isSettingsPressed) {
                         SettingsView()
                     }
-                    .onAppear{
+                    .onAppear {
                         Task {
                             do {
                                 try await viewModel.fetchFeedEvents(username: userName, userToken: userToken)
