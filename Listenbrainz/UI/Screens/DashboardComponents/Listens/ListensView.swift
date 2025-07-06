@@ -58,7 +58,7 @@ struct ListensView: View {
                     .cornerRadius(10)
                 }
             }
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 0.0))
+            .backgroundBlur()
             .readSize($topBarSize)
             .zIndex(1)
             

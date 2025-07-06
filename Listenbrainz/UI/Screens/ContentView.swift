@@ -9,6 +9,7 @@ struct ContentView: View {
     @EnvironmentObject var feedViewModel: FeedViewModel
     @StateObject var yimViewModel = YIMViewModel(repository: YIMRepositoryImpl())
     @StateObject var insetsHolder: InsetsHolder = InsetsHolder()
+    @State private var selectedTab = 0
 
     init() {
         UITabBar.appearance().layer.borderColor = UIColor.clear.cgColor
@@ -59,7 +60,58 @@ struct ContentView: View {
                     }
             }
             .accentColor(Color.blue)
+            //.apply { view in
+            //    if #available(iOS 26.0, *) {
+            //        view.tabViewBottomAccessory {
+            //            ScrollView(.horizontal, showsIndicators: false) {
+            //                HStack {
+            //                    AccessoryButton(title: "Listens", isSelected: selectedTab == 0) {
+            //                        selectedTab = 0
+            //                    }
+            //                    AccessoryButton(title: "Stats", isSelected: selectedTab == 1) {
+            //                        selectedTab = 1
+            //                    }
+            //                    AccessoryButton(title: "Taste", isSelected: selectedTab == 2) {
+            //                        selectedTab = 2
+            //                    }
+            //                    AccessoryButton(title: "Playlists", isSelected: selectedTab == 3) {
+            //                        selectedTab = 3
+            //                    }
+            //                    AccessoryButton(title: "Created for you", isSelected: selectedTab == 4) {
+            //                        selectedTab = 4
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    } else {
+            //        view
+            //    }
+            //}
+            //.tabBarMinimize()
         }
     }
 }
 
+struct AccessoryButton: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    @EnvironmentObject var theme: Theme
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.body.bold())
+                .padding(.vertical, 8)
+                .padding(.horizontal, 16)
+                .foregroundColor(theme.colorScheme.text)
+                .if(isSelected) {
+                    $0.background(Color.blue)
+                }
+                .clipShape(.capsule)
+                .animation(.easeInOut(duration: 0.2), value: isSelected)
+        }
+        .padding(.horizontal, 4)
+        .frame(maxWidth: .infinity)
+    }
+}
