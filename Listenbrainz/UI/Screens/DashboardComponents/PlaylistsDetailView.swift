@@ -19,10 +19,10 @@ struct PlaylistDetailsView: View {
     @State private var showingRecommendToUsersPersonallyView = false
     @Environment(\.colorScheme) var colorScheme
     //@Environment(\.dismiss) var dismiss
-
+    
     @AppStorage(Strings.AppStorageKeys.userToken) private var userToken: String = ""
     @AppStorage(Strings.AppStorageKeys.userName) private var userName: String = ""
-
+    
     var body: some View {
         ZStack {
             (colorScheme == .dark ? Color.backgroundColor : Color.white).ignoresSafeArea()
@@ -41,7 +41,7 @@ struct PlaylistDetailsView: View {
                             VStack(alignment: .leading, spacing: 5){
                                 Text(playlistName)
                                     .font(.largeTitle)
-                                    
+                                
                                 Text(
                                     "Public Playlist by \(viewModel.userName)"
                                 )
@@ -49,7 +49,7 @@ struct PlaylistDetailsView: View {
                                 .fontWeight(.bold)
                                 .foregroundStyle(Color.lightPink)
                             }
-                                
+                            
                             ForEach(details.track, id: \.id) { track in
                                 ListenCardView(
                                     item: track,
@@ -72,54 +72,55 @@ struct PlaylistDetailsView: View {
                                 )
                             }
                         }
+                    }
                 }
             }
-        }
-        .ignoresSafeArea(edges: .horizontal)
-        .onAppear {
-            fetchPlaylistDetails()
-        }
-        .centeredModal(isPresented: $showPinTrackView) {
-            if let track = selectedTrack {
-                PinTrackView(
-                    isPresented: $showPinTrackView,
-                    item: track,
-                    userToken: userToken,
-                    dismissAction: {
-                        showPinTrackView = false
-                    }
-                )
-                .environmentObject(viewModel)
+            .ignoresSafeArea(edges: .horizontal)
+            .onAppear {
+                fetchPlaylistDetails()
             }
-        }
-        .centeredModal(isPresented: $showWriteReview) {
-            if let track = selectedTrack {
-                WriteAReviewView(
-                    isPresented: $showWriteReview,
-                    item: track,
-                    userToken: userToken,
-                    userName: userName
-                ) {
-                    showWriteReview = false
+            .centeredModal(isPresented: $showPinTrackView) {
+                if let track = selectedTrack {
+                    PinTrackView(
+                        isPresented: $showPinTrackView,
+                        item: track,
+                        userToken: userToken,
+                        dismissAction: {
+                            showPinTrackView = false
+                        }
+                    )
+                    .environmentObject(viewModel)
                 }
-                .environmentObject(viewModel)
             }
-        }
-        .centeredModal(isPresented: $showingRecommendToUsersPersonallyView) {
-            if let track = selectedTrack {
-                RecommendToUsersPersonallyView(
-                    item: track,
-                    userName: userName,
-                    userToken: userToken,
-                    dismissAction: {
-                        showingRecommendToUsersPersonallyView = false
+            .centeredModal(isPresented: $showWriteReview) {
+                if let track = selectedTrack {
+                    WriteAReviewView(
+                        isPresented: $showWriteReview,
+                        item: track,
+                        userToken: userToken,
+                        userName: userName
+                    ) {
+                        showWriteReview = false
                     }
-                )
-                .environmentObject(viewModel)
+                    .environmentObject(viewModel)
+                }
+            }
+            .centeredModal(isPresented: $showingRecommendToUsersPersonallyView) {
+                if let track = selectedTrack {
+                    RecommendToUsersPersonallyView(
+                        item: track,
+                        userName: userName,
+                        userToken: userToken,
+                        dismissAction: {
+                            showingRecommendToUsersPersonallyView = false
+                        }
+                    )
+                    .environmentObject(viewModel)
+                }
             }
         }
     }
-
+    
     private func fetchPlaylistDetails() {
         Task {
             await asyncToStream {
