@@ -12,7 +12,7 @@ struct CreatedForYouView: View {
     @EnvironmentObject var theme: Theme
     @EnvironmentObject var insetsHolder: InsetsHolder
     @State private var selectedPlaylistId: String?
-    @State private var isLoading = false
+    @State private var uiState: UiState<PlaylistDetails> = .loading
     @State private var showPinTrackView = false
     @State private var showWriteReview = false
     @State private var showingRecommendToUsersPersonallyView = false
@@ -64,36 +64,39 @@ struct CreatedForYouView: View {
                     .padding(.horizontal, theme.spacings.horizontal)
                 }
                 
-                if !isLoading {
-                    if let details = viewModel.playlistDetails {
-                        LazyVStack(alignment: .leading, spacing: theme.spacings.vertical) {
-                            ForEach(details.track, id: \.title) { track in
-                                ListenCardView(
-                                    item: track,
-                                    onPinTrack: { track in
-                                        selectedTrack = track
-                                        showPinTrackView = true
-                                    },
-                                    onRecommendPersonally: { track in
-                                        selectedTrack = track
-                                        showingRecommendToUsersPersonallyView = true
-                                    },
-                                    onWriteReview: { track in
-                                        selectedTrack = track
-                                        showWriteReview = true
-                                    }
-                                )
-                                .padding(.horizontal, theme.spacings.horizontal)
-                            }
-                            
-                            Spacer(minLength: theme.spacings.screenBottom)
-                        }
-                        .padding(.top)
-                    }
-                } else {
+                switch uiState {
+                case .loading:
                     ProgressView("Loading...")
                         .padding()
-                        .frame(maxWidth: .infinity,maxHeight: .infinity)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .failure(let error):
+                    Text("Could not load tracks :(")
+                        .padding()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .success(let details):
+                    LazyVStack(alignment: .leading, spacing: theme.spacings.vertical) {
+                        ForEach(details.track, id: \.title) { track in
+                            ListenCardView(
+                                item: track,
+                                onPinTrack: { track in
+                                    selectedTrack = track
+                                    showPinTrackView = true
+                                },
+                                onRecommendPersonally: { track in
+                                    selectedTrack = track
+                                    showingRecommendToUsersPersonallyView = true
+                                },
+                                onWriteReview: { track in
+                                    selectedTrack = track
+                                    showWriteReview = true
+                                }
+                            )
+                            .padding(.horizontal, theme.spacings.horizontal)
+                        }
+                        
+                        Spacer(minLength: theme.spacings.screenBottom)
+                    }
+                    .padding(.top)
                 }
             }
         }
@@ -144,10 +147,12 @@ struct CreatedForYouView: View {
     private func fetchPlaylistDetails(_ identifierURL: String) {
         if let playlistId = viewModel.extractPlaylistId(from: identifierURL) {
             selectedPlaylistId = identifierURL
-            isLoading = true
-            viewModel.getCreatedForYouPlaylist(playlistId: playlistId)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                isLoading = false
+            Task {
+                await asyncToStream {
+                    try await viewModel.getCreatedForYouPlaylist(playlistId: playlistId)
+                }.collect { uiState in
+                    self.uiState = uiState
+                }
             }
         } else {
             print("Failed to extract playlist ID from URL")

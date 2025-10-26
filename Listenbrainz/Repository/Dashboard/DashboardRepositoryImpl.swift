@@ -186,20 +186,19 @@ class DashboardRepositoryImpl: DashboardRepository {
               .eraseToAnyPublisher()
       }
 
-  func getCreatedForYouPlaylist(playlistId: String) -> AnyPublisher<PlaylistDetails, AFError> {
-          let urlString = "\(BuildConfiguration.shared.API_LISTENBRAINZ_BASE_URL)/playlist/\(playlistId)"
-    print(urlString)
-          guard let url = URL(string: urlString) else {
-              return Fail(error: AFError.invalidURL(url: urlString)).eraseToAnyPublisher()
-          }
+    func getCreatedForYouPlaylist(playlistId: String) async throws -> PlaylistDetails {
+        let urlString = "\(BuildConfiguration.shared.API_LISTENBRAINZ_BASE_URL)/playlist/\(playlistId)"
+        guard let url = URL(string: urlString) else {
+            throw AFError.invalidURL(url: urlString)
+        }
 
-          return AF.request(url, method: .get)
-              .validate()
-              .publishDecodable(type: PlaylistDetailsResponse.self)
-              .value()
-              .map { $0.playlist }
-              .eraseToAnyPublisher()
-      }
+        let response = try await AF.request(url, method: .get)
+            .validate()
+            .serializingDecodable(PlaylistDetailsResponse.self)
+            .value
+
+        return response.playlist
+    }
     
     func validateUserToken(userToken: String) async throws -> TokenValidation {
         let urlString = "\(BuildConfiguration.shared.API_LISTENBRAINZ_BASE_URL)/validate-token"

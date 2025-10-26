@@ -25,7 +25,9 @@ struct PlaylistView: View {
                             destination: PlaylistDetailsView(
                                 playlistId: playlistId,
                                 playlistName: playlist.title
-                            ).environmentObject(viewModel)
+                            )
+                            .environmentObject(viewModel)
+                            .environmentObject(theme)
                         ) {
                             PlaylistCardView(
                                 playlist: playlist,
@@ -36,7 +38,6 @@ struct PlaylistView: View {
                 }
             }
         }
-        
         .onAppear {
             viewModel.getPlaylists(username: userName)
         }

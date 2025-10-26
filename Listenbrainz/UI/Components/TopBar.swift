@@ -68,6 +68,5 @@ struct TopBar: View {
 }
 
 #Preview{
-        TopBar(isSettingsPressed: .constant(false), isSearchActive: .constant(false), customText: "Feed")
-    }
-
+    TopBar(isSettingsPressed: .constant(false), isSearchActive: .constant(false), customText: "Feed")
+}

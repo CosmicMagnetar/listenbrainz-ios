@@ -22,7 +22,7 @@ struct ListenbrainzApp: App {
     
     var body: some Scene {
         WindowGroup {
-            NavigationView {
+            NavigationStack {
                 if isOnboarding {
                     OnBoardingView()
                         .environmentObject(theme)
@@ -39,7 +39,6 @@ struct ListenbrainzApp: App {
                         }
                 }
             }
-            .navigationViewStyle(.stack)
         }
     }
     

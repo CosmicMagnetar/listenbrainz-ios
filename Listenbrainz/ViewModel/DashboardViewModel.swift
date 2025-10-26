@@ -27,7 +27,6 @@ class DashboardViewModel: ObservableObject {
     @Published var pinnedRecordings: [PinnedRecording] = []
     @Published var playlists: [Playlist] = []
     @Published var createdForYou: [CreatedForYou] = []
-    @Published var playlistDetails: PlaylistDetails?
   
 
     private var subscriptions: Set<AnyCancellable> = []
@@ -346,21 +345,8 @@ class DashboardViewModel: ObservableObject {
               }, receiveValue: { [weak self] createdForYouContainers in
                   print("Received CreatedForYou response: \(createdForYouContainers)")
                   self?.createdForYou = createdForYouContainers.map { $0.playlist }
-
-                  if let identifierURL = createdForYouContainers.first?.playlist.identifier {
-                      self?.fetchPlaylistDetails(from: identifierURL)
-                  }
               })
               .store(in: &subscriptions)
-      }
-
-      private func fetchPlaylistDetails(from identifierURL: String) {
-          guard let playlistId = extractPlaylistId(from: identifierURL) else {
-              self.error = "Failed to extract playlist ID"
-              return
-          }
-
-          getCreatedForYouPlaylist(playlistId: playlistId)
       }
 
        func extractPlaylistId(from identifierURL: String) -> String? {
@@ -376,27 +362,7 @@ class DashboardViewModel: ObservableObject {
           return nil
       }
 
-  func getCreatedForYouPlaylist(playlistId: String) {
-      repository.getCreatedForYouPlaylist(playlistId: playlistId)
-          .receive(on: DispatchQueue.main)
-          .sink(receiveCompletion: { [weak self] completion in
-              switch completion {
-              case .finished:
-                  self?.error = nil
-              case .failure(let error):
-                  self?.error = error.localizedDescription
-                  print("Error fetching playlist details: \(error.localizedDescription)")
-              }
-          }, receiveValue: { [weak self] playlistDetails in
-              self?.playlistDetails = playlistDetails
-              print("Playlist details received: \(playlistDetails)")
-          })
-          .store(in: &subscriptions)
-  }
-
-
-
+    func getCreatedForYouPlaylist(playlistId: String) async throws -> PlaylistDetails {
+        return try await repository.getCreatedForYouPlaylist(playlistId: playlistId)
+    }
 }
-
-
-
