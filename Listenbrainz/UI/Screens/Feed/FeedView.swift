@@ -72,7 +72,6 @@ struct FeedView: View {
                                 HStack {
                                     Spacer()
                                     ProgressView()
-                                        .id(UUID())
                                         .onAppear {
                                             Task {
                                                 try? await viewModel.fetchFeedEvents(username: userName, userToken: userToken)
