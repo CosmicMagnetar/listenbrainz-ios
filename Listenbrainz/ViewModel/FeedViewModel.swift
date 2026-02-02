@@ -10,9 +10,9 @@ import Combine
 import Alamofire
 
 enum FeedType{
-    case events;
-    case following;
-    case similar;
+    case events
+    case following
+    case similar
 }
 
 class FeedViewModel: ObservableObject {
