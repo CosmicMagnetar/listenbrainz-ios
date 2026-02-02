@@ -161,7 +161,6 @@ struct FeedView: View {
                     HStack {
                         Spacer()
                         
-                        // FIX: Using local helper function 'formatFeedTime'
                         Text(formatFeedTime(Int64(event.created)))
                             .font(.system(size: 10))
                             .foregroundColor(theme.colorScheme.hint)
