@@ -90,7 +90,10 @@ class FeedRepositoryImpl: FeedRepository {
     }
 
     func writeAReview(userName: String, item: TrackMetadataProvider, userToken: String, entityName: String, entityId: String, entityType: String, text: String, language: String, rating: Int) -> AnyPublisher<Void, AFError> {
-        guard text.count >= 25, (1...5).contains(rating) else {
+        guard item.trackName != nil,
+              item.recordingMsid != nil,
+              text.count >= 25,
+              (1...5).contains(rating) else {
             return Fail<Void, AFError>(error: AFError.explicitlyCancelled).eraseToAnyPublisher()
         }
 
