@@ -10,7 +10,7 @@ import Combine
 import Alamofire
 
 protocol FeedRepository {
-    func fetchFeedData(userName: String, userToken: String, count: Int, maxTs: Int64?,minTs: Int64?) -> AnyPublisher<FeedAlbum, AFError>
+    func fetchFeedData(userName: String, userToken: String, count: Int, maxTs: Int64?, minTs: Int64?) -> AnyPublisher<FeedAlbum, AFError>
     func fetchFollowListens(userName: String, userToken: String, count: Int, maxTs: Int64?, minTs: Int64?) -> AnyPublisher<FeedAlbum, AFError>
     func fetchSimilarListens(userName: String, userToken: String, count: Int, maxTs: Int64?, minTs: Int64?) -> AnyPublisher<FeedAlbum, AFError>
     func fetchCoverArt(url: URL) -> AnyPublisher<Data, AFError>
